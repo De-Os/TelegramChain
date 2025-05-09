@@ -1,0 +1,170 @@
+plugins {
+    id 'eclipse'
+    id 'idea'
+    id 'maven-publish'
+    id 'net.minecraftforge.gradle' version '[6.0,6.2)'
+//    id 'com.github.johnrengelman.shadow' version '7.1.2'
+    id("io.github.goooler.shadow") version "8.1.8" // shadow java 20 fix
+}
+
+version = mod_version
+group = mod_group_id
+
+base {
+    archivesName = mod_id
+}
+
+configurations {
+    shade
+    implementation.extendsFrom shade
+}
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+
+println "Java: ${System.getProperty 'java.version'}, JVM: ${System.getProperty 'java.vm.version'} (${System.getProperty 'java.vendor'}), Arch: ${System.getProperty 'os.arch'}"
+minecraft {
+    mappings channel: mapping_channel, version: mapping_version
+
+    copyIdeResources = true
+
+    runs {
+        configureEach {
+            workingDirectory project.file('run')
+
+            property 'forge.logging.markers', 'REGISTRIES'
+
+            property 'forge.logging.console.level', 'debug'
+
+            mods {
+                "${mod_id}" {
+                    source sourceSets.main
+                }
+            }
+        }
+
+        client {
+            property 'forge.enabledGameTestNamespaces', mod_id
+        }
+
+        server {
+            property 'forge.enabledGameTestNamespaces', mod_id
+            args '--nogui'
+        }
+
+        gameTestServer {
+            property 'forge.enabledGameTestNamespaces', mod_id
+        }
+
+        data {
+            workingDirectory project.file('run-data')
+
+            args '--mod', mod_id, '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
+        }
+    }
+}
+
+sourceSets.main.resources { srcDir 'src/generated/resources' }
+
+repositories {
+
+}
+
+dependencies {
+    minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
+
+    // Telegram bot API
+
+    minecraftLibrary(group: 'org.telegram', name: 'telegrambots-longpolling', version: '[8.3.0]') {
+        exclude('group': 'org.jetbrains')
+    }
+    minecraftLibrary(group: 'org.telegram', name: 'telegrambots-client', version: '[8.3.0]') {
+        exclude('group': 'org.jetbrains')
+    }
+
+    shade(group: 'org.telegram', name: 'telegrambots-longpolling', version: '[8.3.0]') {
+        exclude('group': 'org.jetbrains')
+    }
+
+    shade(group: 'org.telegram', name: 'telegrambots-client', version: '[8.3.0]') {
+        exclude('group': 'org.jetbrains')
+    }
+
+    shade('com.mojang:logging:1.2.7')
+}
+
+tasks.named('processResources', ProcessResources).configure {
+    var replaceProperties = [
+            minecraft_version   : minecraft_version, minecraft_version_range: minecraft_version_range,
+            forge_version       : forge_version, forge_version_range: forge_version_range,
+            loader_version_range: loader_version_range,
+            mod_id              : mod_id, mod_name: mod_name, mod_license: mod_license, mod_version: mod_version,
+            mod_authors         : mod_authors, mod_description: mod_description,
+    ]
+    inputs.properties replaceProperties
+
+    filesMatching(['META-INF/mods.toml', 'pack.mcmeta']) {
+        expand replaceProperties + [project: project]
+    }
+}
+
+tasks.named('jar', Jar).configure {
+    archiveClassifier = 'slim'
+
+    manifest {
+        attributes([
+                'Specification-Title'     : mod_id,
+                'Specification-Vendor'    : mod_authors,
+                'Specification-Version'   : '1', // We are version 1 of ourselves
+                'Implementation-Title'    : project.name,
+                'Implementation-Version'  : project.jar.archiveVersion,
+                'Implementation-Vendor'   : mod_authors,
+                'Implementation-Timestamp': new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+        ])
+    }
+
+    finalizedBy 'reobfJar'
+}
+
+publishing {
+    publications {
+        register('mavenJava', MavenPublication) {
+            artifact jar
+        }
+    }
+    repositories {
+        maven {
+            url "file://${project.projectDir}/mcmodsrepo"
+        }
+    }
+}
+
+shadowJar {
+    archiveClassifier = ''
+    configurations = [project.configurations.shade]
+
+    relocate('com.mojang', 'tgchain.mojang')
+    relocate('com.google', 'tgchain.google')
+    relocate('org.apache', 'tgchain.apache')
+    relocate('org.slf4j', 'tgchain.slf4j')
+    relocate('com.fasterxml', 'tgchain.fasterxml')
+    relocate('okhttp3', 'tgchain.okhttp3')
+    relocate('okio', 'tgchain.okio')
+    relocate('org.checkerframework', 'tgchain.checkerframework')
+
+    relocate('org.telegram', 'tgchain.tglib')
+
+    relocate("kotlin", "tgchain.kotlin")
+
+    finalizedBy 'reobfShadowJar'
+}
+
+assemble.dependsOn shadowJar
+
+reobf {
+    shadowJar {}
+}
+
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
