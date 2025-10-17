@@ -155,6 +155,9 @@ shadowJar {
 
     relocate("kotlin", "tgchain.kotlin")
 
+    exclude 'META-INF/maven/com.fasterxml.jackson/**'
+    exclude 'META-INF/services/com.fasterxml.jackson.**'
+
     finalizedBy 'reobfShadowJar'
 }
 
