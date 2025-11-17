@@ -3,7 +3,6 @@ plugins {
     id 'idea'
     id 'maven-publish'
     id 'net.minecraftforge.gradle' version '[6.0,6.2)'
-//    id 'com.github.johnrengelman.shadow' version '7.1.2'
     id("io.github.goooler.shadow") version "8.1.8" // shadow java 20 fix
 }
 
@@ -66,7 +65,18 @@ minecraft {
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 repositories {
+    maven {
+        name = "ftbMavenReleases"
+        url = uri("https://maven.ftb.dev/releases")
+    }
 
+    maven {
+        url "https://maven.architectury.dev/"
+    }
+
+    maven {
+        url "https://cursemaven.com"
+    }
 }
 
 dependencies {
@@ -80,6 +90,13 @@ dependencies {
     minecraftLibrary(group: 'org.telegram', name: 'telegrambots-client', version: '[8.3.0]') {
         exclude('group': 'org.jetbrains')
     }
+
+    compileOnly fg.deobf("dev.ftb.mods:ftb-quests-forge:${ftb_quests_version}")
+    compileOnly fg.deobf("dev.ftb.mods:ftb-library-forge:${ftb_library_version}")
+    compileOnly fg.deobf("dev.architectury:architectury-forge:${architectury_version}")
+
+    implementation "org.slf4j:slf4j-api:2.0.9"
+    implementation "org.apache.logging.log4j:log4j-slf4j2-impl:2.20.0"
 
     shade(group: 'org.telegram', name: 'telegrambots-longpolling', version: '[8.3.0]') {
         exclude('group': 'org.jetbrains')

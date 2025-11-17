@@ -1,6 +1,8 @@
 package com.deos.telegram_chain;
 
 import com.deos.telegram_chain.handlers.ServerMessageHandler;
+import com.deos.telegram_chain.helpers.FTBQuestsHelper;
+import dev.ftb.mods.ftbquests.events.ObjectCompletedEvent;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.event.ServerChatEvent;
@@ -47,6 +49,11 @@ public class ServersideEventsHandler {
             }
         } catch (TelegramApiException e) {
             TelegramChain.LOGGER.error("Unable to start bot polling", e);
+        }
+
+        FTBQuestsHelper.init();
+        if (FTBQuestsHelper.isFTBQuestsLoaded()) {
+            ObjectCompletedEvent.QUEST.register(FTBQuestsHelper::onQuestCompleted);
         }
     }
 

@@ -12,6 +12,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class ServerMessageHandler {
     public static ArrayList<String> currentUsers = new ArrayList<>();
@@ -53,10 +54,10 @@ public class ServerMessageHandler {
             } else {
                 return;
             }
-        }else{
-            if(currentUsers.contains(player.getName().getString())){
+        } else {
+            if (currentUsers.contains(player.getName().getString())) {
                 currentUsers.remove(player.getName().getString());
-            }else{
+            } else {
                 return;
             }
         }
@@ -85,6 +86,43 @@ public class ServerMessageHandler {
         values.put("${killer}", killerName);
 
         sendToTelegram(values, Config.messageServerPlayerDiedBoilerplate);
+    }
+
+    public static void onQuestCompleted(String questName, List<ServerPlayer> players, String teamName, boolean isQuestRepeatable) {
+        if (Config.messageServerQuestSkipRepeatedQuests && isQuestRepeatable) {
+            return;
+        }
+
+        String boilerplate;
+        var values = new HashMap<String, String>();
+
+        values.put("${questName}", questName);
+
+        if (players.size() == 1) {
+            if (Config.messageServerQuestCompletedSingleBoilerplate.isEmpty()) {
+                return;
+            }
+
+            boilerplate = Config.messageServerQuestCompletedSingleBoilerplate;
+
+            values.put("${nickname}", players.get(0).getName().getString());
+        } else {
+            if (Config.messageServerQuestCompletedTeamBoilerplate.isEmpty()) {
+                return;
+            }
+
+            boilerplate = Config.messageServerQuestCompletedTeamBoilerplate;
+
+            var playersNicknames = new ArrayList<String>();
+            for (ServerPlayer player : players) {
+                playersNicknames.add(player.getName().getString());
+            }
+
+            values.put("${players}", String.join(", ", playersNicknames));
+            values.put("${teamName}", teamName);
+        }
+
+        sendToTelegram(values, boilerplate);
     }
 
     public static void sendToTelegram(HashMap<String, String> replacements, String text) {

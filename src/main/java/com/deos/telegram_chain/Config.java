@@ -98,6 +98,24 @@ public class Config
             .comment("You can use slash at start or not")
             .define("commandTelegramPlayersList", "/players");
 
+    public static final ForgeConfigSpec.ConfigValue<String> MESSAGE_SERVER_QUEST_COMPLETED_SINGLE_BOILERPLATE = BUILDER
+            .comment("Define message format for quest completed event (FTBQuests). Used when only one player from team connected")
+            .comment("Leave empty or use broadcastToTelegram to disable")
+            .comment("Supported vars: ${nickname}, ${questName}")
+            .comment("Note that messageServerParseMode also works here")
+            .define("messageServerQuestCompletedSingleBoilerplate", "<b>${nickname}</b> completed the quest <i>${questName}</i>");
+
+    public static final ForgeConfigSpec.ConfigValue<String> MESSAGE_SERVER_QUEST_COMPLETED_TEAM_BOILERPLATE = BUILDER
+            .comment("Define message format for quest completed event (FTBQuests). Used when multiple players from team connected")
+            .comment("Leave empty or use broadcastToTelegram to disable")
+            .comment("Supported vars: ${players}, ${questName}, ${teamName}")
+            .comment("Note that messageServerParseMode also works here")
+            .define("messageServerQuestCompletedTeamBoilerplate", "Players <b>${players}</b> from the <b>${teamName}</b> team completed the <i>${questName}</i> quest");
+
+    public static final ForgeConfigSpec.ConfigValue<Boolean> MESSAGE_SERVER_QUEST_SKIP_REPEATABLE_QUESTS = BUILDER
+            .comment("Skip or not repeatable quests notifications")
+            .define("messageServerQuestSkipRepeatedQuests", true);
+
     static final ForgeConfigSpec SPEC = BUILDER.build();
 
     public static String telegramBotToken;
@@ -122,6 +140,10 @@ public class Config
     public static String messageTelegramPlayersListEntryBoilerplate;
 
     public static String commandTelegramPlayersList;
+
+    public static String messageServerQuestCompletedSingleBoilerplate;
+    public static String messageServerQuestCompletedTeamBoilerplate;
+    public static Boolean messageServerQuestSkipRepeatedQuests;
 
     @SubscribeEvent
     static void onLoad(final ModConfigEvent event)
@@ -148,5 +170,9 @@ public class Config
         messageTelegramPlayersListEmpty = MESSAGE_TELEGRAM_PLAYERS_LIST_EMPTY.get();
         messageTelegramPlayersListEntryBoilerplate = MESSAGE_TELEGRAM_PLAYERS_LIST_ENTRY_BOILERPLATE.get();
         commandTelegramPlayersList = COMMAND_TELEGRAM_PLAYERS_LIST.get();
+
+        messageServerQuestCompletedSingleBoilerplate = MESSAGE_SERVER_QUEST_COMPLETED_SINGLE_BOILERPLATE.get();
+        messageServerQuestCompletedTeamBoilerplate = MESSAGE_SERVER_QUEST_COMPLETED_TEAM_BOILERPLATE.get();
+        messageServerQuestSkipRepeatedQuests = MESSAGE_SERVER_QUEST_SKIP_REPEATABLE_QUESTS.get();
     }
 }
