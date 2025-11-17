@@ -12,6 +12,7 @@ A small mod for forwarding messages from Telegram to the server and back
 - - Death messages
 - - Player join/disconnect event
 - - Server started event
+- - (if FTBQuests installed) Quest completed event
 - Telegram ➡ Server
 - -  Chat messages
 - - /players command to list players on server
